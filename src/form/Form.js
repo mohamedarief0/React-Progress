@@ -1,8 +1,8 @@
 import { useState } from "react";
+import "./Form.css";
 
 export default function Form() {
   const [users, setUsers] = useState([]);
-
   const [formData, setFormData] = useState({
     id: null,
     name: "",
@@ -12,13 +12,11 @@ export default function Form() {
   });
   const [editing, setEditing] = useState(false);
 
-  // input getting values
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Form submit fuction
   const handleCreate = (e) => {
     e.preventDefault();
     if (editing) {
@@ -29,75 +27,68 @@ export default function Form() {
     } else {
       setUsers([...users, { ...formData, id: Date.now() }]);
     }
-    setFormData({ name: "", email: "", phone: "", city: "" });
+    setFormData({ id: null, name: "", email: "", phone: "", city: "" });
   };
 
-  console.log("User Created:", users);
-
-  // Table edit and delete fucntions
   const handleEdit = (user) => {
     setFormData(user);
     setEditing(true);
   };
 
   const handleDelete = (userId) => {
-    setUsers(
-      users.filter((user) => {
-        return user.id !== userId.id;
-      })
-    );
+    setUsers(users.filter((user) => user.id !== userId.id));
   };
+
   return (
     <>
-      <h1>{editing ? "Edit User" : "Create User"}</h1>
-      <form onSubmit={handleCreate}>
-        <label htmlFor="name">Name</label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          value={formData.name}
-          onChange={handleChange}
-        />
-
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
-
-        <label htmlFor="phone">Phone</label>
-        <input
-          id="phone"
-          name="phone"
-          type="text"
-          value={formData.phone}
-          onChange={handleChange}
-        />
-
-        <label htmlFor="city">City</label>
-        <input
-          id="city"
-          name="city"
-          type="text"
-          value={formData.city}
-          onChange={handleChange}
-        />
-
-        <button type="submit">{editing ? "Update" : "Create"}</button>
-      </form>
-
-      <table>
+      <div className="container">
+        <h1 className="title">{editing ? "Edit User" : "Create User"}</h1>
+        <form className="user-form" onSubmit={handleCreate}>
+          <input
+            placeholder="Full Name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+          <input
+            placeholder="Email Address"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            placeholder="Phone Number"
+            name="phone"
+            type="text"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+          />
+          <input
+            placeholder="City"
+            name="city"
+            type="text"
+            value={formData.city}
+            onChange={handleChange}
+            required
+          />
+          <button className="submit-btn" type="submit">
+            {editing ? "Update User" : "Create User"}
+          </button>
+        </form>
+      </div>
+      <table className="user-table">
         <thead>
           <tr>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
             <th>City</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -108,14 +99,15 @@ export default function Form() {
               <td>{user.phone}</td>
               <td>{user.city}</td>
               <td>
-                <div>
-                  <button type="button" onClick={() => handleEdit(user)}>
-                    Edit
-                  </button>
-                  <button type="button" onClick={() => handleDelete(user)}>
-                    Delete
-                  </button>
-                </div>
+                <button className="edit-btn" onClick={() => handleEdit(user)}>
+                  Edit
+                </button>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(user)}
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
