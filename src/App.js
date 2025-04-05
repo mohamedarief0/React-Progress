@@ -1,5 +1,11 @@
+import { Route, Routes } from "react-router-dom";
+import Form from "./form/Form";
 export default function App() {
-  return <>
-  <h1>Header</h1>
-  </>
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Form />} />
+      </Routes>
+    </>
+  );
 }
