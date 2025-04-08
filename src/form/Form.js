@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
 import "./Form.css";
 
 export default function Form() {
@@ -17,27 +19,64 @@ export default function Form() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleCreate = (e) => {
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/users");
+        console.log("Fetched Data:", response.data);
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleCreate = async (e) => {
     e.preventDefault();
-    if (editing) {
-      setUsers(
-        users.map((user) => (user.id === formData.id ? formData : user))
-      );
-      setEditing(false);
-    } else {
-      setUsers([...users, { ...formData, id: Date.now() }]);
+    try {
+      if (editing) {
+        // Use PUT request for updating an existing user
+        await axios.put(
+          `http://localhost:5000/api/users/${formData._id}`,
+          formData
+        );
+
+        setUsers(
+          users.map((user) => (user._id === formData._id ? formData : user))
+        );
+        setEditing(false);
+      } else {
+        // Use POST request for creating a new user
+        const response = await axios.post(
+          "http://localhost:5000/api/users",
+          formData
+        );
+        setUsers([...users, response.data]);
+      }
+    } catch (error) {
+      console.error("Error creating/updating user:", error);
     }
+
     setFormData({ id: null, name: "", email: "", phone: "", city: "" });
   };
+
+
 
   const handleEdit = (user) => {
     setFormData(user);
     setEditing(true);
   };
 
-  const handleDelete = (userId) => {
-    setUsers(users.filter((user) => user.id !== userId.id));
+  const handleDelete = async (userId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/users/${userId}`);
+      setUsers(users.filter((user) => user._id !== userId));
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
   };
+
 
   return (
     <>
@@ -93,7 +132,7 @@ export default function Form() {
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id}>
+            <tr key={user._id || user.id}>
               <td>{user.name}</td>
               <td>{user.email}</td>
               <td>{user.phone}</td>
@@ -104,7 +143,7 @@ export default function Form() {
                 </button>
                 <button
                   className="delete-btn"
-                  onClick={() => handleDelete(user)}
+                  onClick={() => handleDelete(user._id)}
                 >
                   Delete
                 </button>
