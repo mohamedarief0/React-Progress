@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
 import "./Form.css";
 
 export default function Form() {
@@ -13,18 +12,15 @@ export default function Form() {
     city: "",
   });
   const [editing, setEditing] = useState(false);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const [showModal, setShowModal] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/users");
-        console.log("Fetched Data:", response.data);
         setUsers(response.data);
+        console.log(response.data)
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -32,22 +28,24 @@ export default function Form() {
     fetchUser();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
       if (editing) {
-        // Use PUT request for updating an existing user
         await axios.put(
           `http://localhost:5000/api/users/${formData._id}`,
           formData
         );
-
         setUsers(
           users.map((user) => (user._id === formData._id ? formData : user))
         );
         setEditing(false);
       } else {
-        // Use POST request for creating a new user
         const response = await axios.post(
           "http://localhost:5000/api/users",
           formData
@@ -57,24 +55,35 @@ export default function Form() {
     } catch (error) {
       console.error("Error creating/updating user:", error);
     }
-
     setFormData({ id: null, name: "", email: "", phone: "", city: "" });
   };
-
-
 
   const handleEdit = (user) => {
     setFormData(user);
     setEditing(true);
   };
 
-  const handleDelete = async (userId) => {
+  const confirmDelete = (user) => {
+    setDeleteUserId(user._id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteUserId) return;
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userId}`);
-      setUsers(users.filter((user) => user._id !== userId));
+      const deleteResponse = await axios.delete(
+        `http://localhost:5000/api/users/${deleteUserId}`
+      );
+      console.log("Delete Response:", deleteResponse.data);
+      setUsers(users.filter((user) => user._id !== deleteUserId));
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error(
+        "Error deleting user:",
+        error.response ? error.response.data : error.message
+      );
     }
+    setShowModal(false);
+    setDeleteUserId(null);
   };
 
 
@@ -120,6 +129,7 @@ export default function Form() {
           </button>
         </form>
       </div>
+
       <table className="user-table">
         <thead>
           <tr>
@@ -143,7 +153,7 @@ export default function Form() {
                 </button>
                 <button
                   className="delete-btn"
-                  onClick={() => handleDelete(user._id)}
+                  onClick={() => confirmDelete(user)}
                 >
                   Delete
                 </button>
@@ -152,6 +162,20 @@ export default function Form() {
           ))}
         </tbody>
       </table>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <p>Do you really want to delete this user?</p>
+            <button className="confirm-btn" onClick={handleDelete}>
+              Yes
+            </button>
+            <button className="cancel-btn" onClick={() => setShowModal(false)}>
+              No
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
